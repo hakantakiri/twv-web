@@ -6,28 +6,33 @@ import { Variable } from './components/Variable'
 import { VariableInterface } from './common/variable.interface'
 import { TextResultInterface } from './common/textResult.interface'
 import { TextPair } from './components/TextPair'
+import { getCacheTextResults, getCacheVariables, setTextResultsCache, setVariablesToCache } from './services/cache.service'
 
 
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [vars, setVars] = useState<VariableInterface[]>([])
-  const [textResults, SetTextResults] = useState<TextResultInterface[]>([])
+  const [vars, setVars] = useState<VariableInterface[]>(getCacheVariables())
+  const [textResults, SetTextResults] = useState<TextResultInterface[]>((()=>{ 
+    let cacheTextResults: TextResultInterface[] = getCacheTextResults()
+    if(cacheTextResults.length == 0 ){
+      cacheTextResults = [{raw: "", converted: ""},{raw: "", converted: ""},{raw: "", converted: ""}]
+    }
+      return cacheTextResults
+    }
+  )())
 
   useEffect(()=> {
-    let raw: TextResultInterface = {raw: "", converted: ""}
-    let ra1: TextResultInterface = {raw: "", converted: ""}
-    let ra2: TextResultInterface = {raw: "", converted: ""}
-    SetTextResults([raw, ra1, ra2])
-    
   }, [])
 
   useEffect(()=> {
-    console.log(JSON.stringify(vars))
-    convertAll()
+    setVariablesToCache(vars)
   }, [vars])
 
+  useEffect(()=> {
+    setTextResultsCache(textResults)
+  }, [textResults])
 
+  // Functions for Variables
   const addVariable = (key: string, value: string) => {
     setVars([...vars, {
       key: key, value: value
@@ -50,10 +55,14 @@ function App() {
     setVars(newVar)
   }
 
+  // Functions for Texts
+  const addText = ()=> {
+    SetTextResults([...textResults, {raw: "", converted: ""}])
+  }
+
   const updateText = (index: number, raw: string) => {
     let newTexts = [...textResults]
     newTexts[index].raw = raw
-    newTexts[index].converted = convert(raw)
     SetTextResults(newTexts)
   }
 
@@ -65,7 +74,7 @@ function App() {
   }
 
   const convertAll  = () => {
-    let texts = textResults
+    let texts = [...textResults]
     for (let t of texts){
       t.converted = convert(t.raw)
     }
@@ -73,11 +82,17 @@ function App() {
     SetTextResults(texts)
   }
 
+  const deleteText = (index: number) => {
+    let newTexts = [...textResults]
+    newTexts.splice(index, 1)
+    SetTextResults(newTexts)
+  }
+
   return (
     <>
       <section>
         <h1>Variables</h1>
-        <ul>
+        <ul style={{listStyleType:'none'}}>
           {vars.map((v, i)=>{
             return <li key={i}>
               <Variable 
@@ -98,14 +113,18 @@ function App() {
       <section>
           <h1>Texts</h1>
           <button onClick = {convertAll}>Convert</button>
-          {textResults.map((t, i)=>{
-              return <li key={i}>
-                  <TextPair
-                    info={t}
-                    onUpdateText={text => {updateText(i, text)}}
-                  />
-                </li>
-            })}
+          <ul style={{listStyleType:'none'}}>
+            {textResults.map((t, i)=>{
+                return <li key={i}>
+                    <TextPair
+                      info={t}
+                      onUpdateText={text => {updateText(i, text)}}
+                      onDeleteText={()=>{deleteText(i)}}
+                    />
+                  </li>
+              })}
+          </ul>
+          <button onClick={addText}>Add Text</button>
       </section>
     </>
   )
