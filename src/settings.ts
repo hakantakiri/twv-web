@@ -1,0 +1,1 @@
+export const SAVE_DOCUMENT_EXTENSION = ".json"
