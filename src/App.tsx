@@ -7,6 +7,7 @@ import { VariableInterface } from './common/variable.interface'
 import { TextResultInterface } from './common/textResult.interface'
 import { TextPair } from './components/TextPair'
 import { getCacheTextResults, getCacheVariables, setTextResultsCache, setVariablesToCache } from './services/cache.service'
+import { Header } from './components/Header'
 
 
 
@@ -90,6 +91,7 @@ function App() {
 
   return (
     <>
+    <Header/>
       <section>
         <h1>Variables</h1>
         <ul style={{listStyleType:'none'}}>

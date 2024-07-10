@@ -1,3 +1,4 @@
+import { SaveDocumentInterface } from "../common/saveDocument.interface"
 import { TextResultInterface } from "../common/textResult.interface"
 import { VariableInterface } from "../common/variable.interface"
 
@@ -15,6 +16,19 @@ export const getCacheTextResults = () : TextResultInterface[]=> {
         return []
     }
     return JSON.parse(textResultsString)
+}
+
+export const getCacheToDownload = (): SaveDocumentInterface=> {
+    return {
+        variables: getCacheVariables(),
+        textResults: getCacheTextResults()
+    }
+}
+
+export const loadToCacheFromFile = (savedDocument: SaveDocumentInterface):void => {
+    setVariablesToCache(savedDocument.variables)
+    setTextResultsCache(savedDocument.textResults)
+    window.location.reload()
 }
 
 export const setVariablesToCache = (variables: VariableInterface[]) =>  {
