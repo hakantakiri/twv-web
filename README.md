@@ -1,6 +1,6 @@
 # Text Generator with variables
 
-Generate texts with variables
+Generate texts with variables 
 
 Live at:
 https://text-generator-with-variables.netlify.app/
