@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
 import './App.css'
 import { Variable } from './components/Variable'
 import { VariableInterface } from './common/variable.interface'
@@ -8,8 +6,6 @@ import { TextResultInterface } from './common/textResult.interface'
 import { TextPair } from './components/TextPair'
 import { getCacheTextResults, getCacheVariables, setTextResultsCache, setVariablesToCache } from './services/cache.service'
 import { Header } from './components/Header'
-
-
 
 function App() {
   const [vars, setVars] = useState<VariableInterface[]>(getCacheVariables())
@@ -34,19 +30,26 @@ function App() {
   }, [textResults])
 
   // Functions for Variables
-  const addVariable = (key: string, value: string) => {
+  const addVariable = (key: string, value: string | string[], label: string | string[]) => {
     setVars([...vars, {
-      key: key, value: value
+      key: key, value: value, label: label
     }])
   }
+
   const updateKey = (key: string, index: number)=> {
     let nVars  = [...vars]
     nVars[index].key = key
     setVars(nVars)
   }
-  const updateValue = (value: string, index: number)=> {
+  const updateValue = (value: string|string[], index: number)=> {
     let nVars  = [...vars]
     nVars[index].value = value
+    setVars(nVars)
+  }
+
+  const updateLabel = (label: string|string[], index: number)=> {
+    let nVars  = [...vars]
+    nVars[index].label = label
     setVars(nVars)
   }
 
@@ -74,8 +77,36 @@ function App() {
   }
 
   const convert = (text:string) => {
+    // For single variables
     for (let v of vars){
-      text = text.replace(new RegExp(`{{${v.key}}}` , 'g'), v.value)
+      text = text.replace(new RegExp(`{{${v.key}}}` , 'g'), String(v.value))
+    }
+    // Identifies all iterative matches
+    let iterableSections = text.match(/<<<(.*?)>>>/g)
+    console.log("Found iterable sections")
+    console.log(iterableSections)
+    if (iterableSections){
+      // Prepares iterations for each match
+      for (let i = 0; i < iterableSections.length; i++){
+        let iterableSection = iterableSections[i]
+        let resulting = []
+        for( let v of vars){
+          if (Array.isArray(v.value) && iterableSection.includes(`{{${v.key}.label}}`)){
+            let newSectionWithAllVarsReplaced = []
+            for (let j = 0; j<v.value.length; j++){
+              let newSubForEachVar = iterableSection.slice(3, -3)
+              newSubForEachVar = newSubForEachVar.replace(new RegExp(`{{${v.key}.label}}` , 'g'), String(v.label[j]))
+              newSubForEachVar = newSubForEachVar.replace(new RegExp(`{{${v.key}.value}}` , 'g'), String(v.value[j]))
+              newSectionWithAllVarsReplaced.push(newSubForEachVar)
+            }
+            resulting.push(newSectionWithAllVarsReplaced.join('\n'))
+          }
+
+        }
+        if(resulting.length > 0){
+          text=text.replace(iterableSection, resulting.join('\n'))
+        }
+      }
     }
     return text
   }
@@ -102,21 +133,28 @@ function App() {
         <h1>Variables</h1>
         <ul style={{listStyleType:'none'}}>
           {vars.map((v, i)=>{
-            return <li key={i}>
+              return <li key={i}>
               <Variable 
-              info = {{key: v.key, value: v.value}}
+              info = {v as VariableInterface}
               onKeyChange={k => {updateKey(k, i)}}
               onValueChange={value => {updateValue(value, i)}}
+              onLabelChange={label => {updateLabel(label, i)}}
               onClear={()=> {clearValue(i)}}
               onDelete={()=> {deleteValue(i)}}
-              /></li>
+              /></li>     
           })}
         </ul>
         <button
           onClick={()=> {
-            addVariable('', '')
+            addVariable('','', '')
           }}
-        >Add Key</button>
+        >Add variable</button>
+         <button
+          onClick={()=> {
+            addVariable('', [''], [''])
+          }}
+        >Add list variable</button>
+            <button onClick={() => {console.log(vars)}}>Log variables</button>
       </section>
 
       <section>
