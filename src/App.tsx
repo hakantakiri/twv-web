@@ -50,6 +50,12 @@ function App() {
     setVars(nVars)
   }
 
+  const clearValue = (index: number) => {
+    let newVar = [...vars]
+    newVar[index].value = ""
+    setVars(newVar)
+  }
+
   const deleteValue = (index: number) =>{
     let newVar = [...vars]
     newVar.splice(index, 1)
@@ -101,6 +107,7 @@ function App() {
               info = {{key: v.key, value: v.value}}
               onKeyChange={k => {updateKey(k, i)}}
               onValueChange={value => {updateValue(value, i)}}
+              onClear={()=> {clearValue(i)}}
               onDelete={()=> {deleteValue(i)}}
               /></li>
           })}
