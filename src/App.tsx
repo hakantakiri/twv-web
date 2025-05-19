@@ -153,7 +153,7 @@ function App() {
               >
                 <div className='liContent'>
                   <button
-                draggable={true} onDragStart={(e) => {setDraggedIndex(i)}}
+                draggable={true} onDragStart={() => {setDraggedIndex(i)}}
                
               onDragEnd={() => {
                 updatePositionOnSuccessDrag(draggedIndex, draggedOverIndex)
