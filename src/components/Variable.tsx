@@ -98,7 +98,7 @@ export const Variable = (props: VariableProps) => {
                                 setDraggedOverIndex(i)}}
                         >
                             <button
-                            draggable={true} onDragStart={(e) => {setDraggedIndex(i)}}
+                            draggable={true} onDragStart={() => {setDraggedIndex(i)}}
                             
                             onDragEnd={() => {
                                 updatePositionOnSuccessDrag(draggedIndex, draggedOverIndex)
