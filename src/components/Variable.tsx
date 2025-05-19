@@ -1,4 +1,7 @@
+import { useState } from "react"
 import { VariableInterface } from "../common/variable.interface"
+import dragIcon from '../assets/drag.svg'
+import deleteIcon from '../assets/delete.svg'
 
 interface VariableProps {
     info: VariableInterface,
@@ -10,6 +13,10 @@ interface VariableProps {
 }
 
 export const Variable = (props: VariableProps) => {
+
+    const [draggedIndex, setDraggedIndex] = useState<number>(-1)
+    const [draggedOverIndex, setDraggedOverIndex] = useState<number>(-1)
+    
     const deleteVariable = () => {
         if (window.confirm("Are you sure you want to delete this variable?")) {
             props.onDelete();
@@ -54,23 +61,61 @@ export const Variable = (props: VariableProps) => {
         }
     }
 
+    // Functions for Drag and Drop
+    const updatePositionOnSuccessDrag = (draggedIndex: number, draggedOverIndex: number) => {
+        let newVars = [...(props.info.value as Array<string>)]
+        let draggedItem = newVars[draggedIndex]
+        newVars.splice(draggedIndex, 1)
+        newVars.splice(draggedOverIndex, 0, draggedItem)
+        props.onValueChange(newVars)
+
+        let newLabel = [...(props.info.label as Array<string>)]
+        let draggedLabel = newLabel[draggedIndex]
+        newLabel.splice(draggedIndex, 1)
+        newLabel.splice(draggedOverIndex, 0, draggedLabel)
+        props.onLabelChange(newLabel)
+    }
+
     return <div>
         { !Array.isArray(props.info.value)? 
             <div>
                 Key: <input onChange={e=>{props.onKeyChange(e.target.value)}} value={props.info.key}/>
                 Value: <input onChange={e=>{props.onValueChange(e.target.value)}} value={props.info.value} />
                 <button onClick={props.onClear}>ⓧ Clear</button>
-                <button onClick={deleteVariable}>🗑️ Remove</button>
+                <button onClick={deleteVariable}>
+                    {/* 🗑️ Remove */}
+                    <img src={deleteIcon} alt="drag" style={{ width: '16px', height: '16px' }} />
+                    </button>
             </div>:
             <div>
                 Key: <input onChange={e=>{props.onKeyChange(e.target.value)}} value={props.info.key}/>
-                <ul>
+                <ul style={{listStyleType:'none'}}>
                     {(props.info.value as Array<string>).map((v, i) => {
-                        return <li key={i}>
+                        return  <li key={i}
+                            className={draggedOverIndex === i ? "topFocus" : ""}
+                            onDragOver={(e)=> {
+                                e.preventDefault()
+                                setDraggedOverIndex(i)}}
+                        >
+                            <button
+                            draggable={true} onDragStart={(e) => {setDraggedIndex(i)}}
+                            
+                            onDragEnd={() => {
+                                updatePositionOnSuccessDrag(draggedIndex, draggedOverIndex)
+                                setDraggedIndex(-1)
+                                setDraggedOverIndex(-1)
+                            }}
+                            >
+                                {/* Drag */}
+                                <img src={dragIcon} alt="drag" style={{ width: '16px', height: '16px' }} />
+                            </button>
                             Label: <input onChange={e=>{updateListItemLabel(i, e.target.value)}} value={props.info.label?.[i]} />
                             Value: <input onChange={e=>{updateListItemValue(i, e.target.value)}} value={v} />
                             <button onClick={()=>{clearListItem(i)}}>ⓧClear</button>
-                            <button onClick={()=>{deleteListItem(i)}}>🗑️</button>
+                            <button onClick={()=>{deleteListItem(i)}}>
+                                {/* 🗑️  */}
+                            <img src={deleteIcon} alt="drag" style={{ width: '16px', height: '16px' }} />
+                            </button>
                         </li>
                     })}
                     <button onClick={addListItem}>Add item</button>
@@ -78,6 +123,5 @@ export const Variable = (props: VariableProps) => {
                 </ul>
             </div>
         }
-        <hr/>
     </div>
    }

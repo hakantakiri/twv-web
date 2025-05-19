@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import dragIcon from './assets/drag.svg'
 import './App.css'
 import { Variable } from './components/Variable'
 import { VariableInterface } from './common/variable.interface'
@@ -17,12 +18,13 @@ function App() {
       return cacheTextResults
     }
   )())
+  const [draggedIndex, setDraggedIndex] = useState<number>(-1)
+  const [draggedOverIndex, setDraggedOverIndex] = useState<number>(-1)
 
-  useEffect(()=> {
-  }, [])
-
+  // Use effects
   useEffect(()=> {
     setVariablesToCache(vars)
+    setDraggedOverIndex(-1)
   }, [vars])
 
   useEffect(()=> {
@@ -126,6 +128,16 @@ function App() {
     SetTextResults(newTexts)
   }
 
+  // Functions for Drag and Drop
+
+  const updatePositionOnSuccessDrag = (draggedIndex: number, draggedOverIndex: number) => {
+    let newVars = [...vars]
+    let draggedItem = newVars[draggedIndex]
+    newVars.splice(draggedIndex, 1)
+    newVars.splice(draggedOverIndex, 0, draggedItem)
+    setVars(newVars)
+  }
+
   return (
     <>
     <Header/>
@@ -133,7 +145,25 @@ function App() {
         <h1>Variables</h1>
         <ul style={{listStyleType:'none'}}>
           {vars.map((v, i)=>{
-              return <li key={i}>
+              return <li key={i}
+              className={draggedOverIndex === i ? "topFocus" : ""}
+             onDragOver={(e)=> {
+                e.preventDefault()
+                setDraggedOverIndex(i)}}
+              >
+                <div className='liContent'>
+                  <button
+                draggable={true} onDragStart={(e) => {setDraggedIndex(i)}}
+               
+              onDragEnd={() => {
+                updatePositionOnSuccessDrag(draggedIndex, draggedOverIndex)
+                setDraggedIndex(-1)
+                setDraggedOverIndex(-1)
+              }}
+              >
+                {/* Drag */}
+                <img src={dragIcon} alt="drag" style={{ width: '16px', height: '16px' }} />
+              </button>
               <Variable 
               info = {v as VariableInterface}
               onKeyChange={k => {updateKey(k, i)}}
@@ -141,7 +171,12 @@ function App() {
               onLabelChange={label => {updateLabel(label, i)}}
               onClear={()=> {clearValue(i)}}
               onDelete={()=> {deleteValue(i)}}
-              /></li>     
+              />
+
+                </div>
+                <hr/>
+              </li>     
+              
           })}
         </ul>
         <button
