@@ -4,7 +4,6 @@ import './App.css'
 import { Variable } from './components/Variable'
 import { VariableInterface } from './common/variable.interface'
 import { TextResultInterface } from './common/textResult.interface'
-import { TextPair } from './components/TextPair'
 import {
     getCacheTextResults,
     getCacheVariables,
@@ -12,7 +11,6 @@ import {
     setVariablesToCache,
 } from './services/cache.service'
 import { Header } from './components/Header'
-import { RichText } from './components/RichText'
 import { RichTextPair } from './components/RichTextPair'
 
 function App() {
