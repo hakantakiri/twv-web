@@ -13,6 +13,14 @@ import {
 import { Header } from './components/Header'
 import { RichTextPair } from './components/RichTextPair'
 import { ToolsHeader } from './components/ToolsHeader'
+import { Environments } from './components/Environments'
+import { EnvironmentInterface } from './common/environment.interface'
+import {
+    getCacheEnvironments,
+    setEnvironmentsToCache,
+    getCacheCurrentEnvironmentId,
+    setCacheCurrentEnvironmentId,
+} from './services/cache.service'
 
 function App() {
     const [vars, setVars] = useState<VariableInterface[]>(getCacheVariables())
@@ -27,7 +35,14 @@ function App() {
                 ]
             }
             return cacheTextResults
+            return cacheTextResults
         })(),
+    )
+    const [environments, setEnvironments] = useState<EnvironmentInterface[]>(
+        getCacheEnvironments(),
+    )
+    const [currentEnvironmentId, setCurrentEnvironmentId] = useState<string>(
+        getCacheCurrentEnvironmentId(),
     )
     const [draggedIndex, setDraggedIndex] = useState<number>(-1)
     const [draggedOverIndex, setDraggedOverIndex] = useState<number>(-1)
@@ -41,6 +56,14 @@ function App() {
     useEffect(() => {
         setTextResultsCache(textResults)
     }, [textResults])
+
+    useEffect(() => {
+        setEnvironmentsToCache(environments)
+    }, [environments])
+
+    useEffect(() => {
+        setCacheCurrentEnvironmentId(currentEnvironmentId)
+    }, [currentEnvironmentId])
 
     // Functions for Variables
     const addVariable = (
@@ -99,8 +122,37 @@ function App() {
     }
 
     const convert = (text: string) => {
+        // Resolve environment variables first
+        const currentEnv = environments.find(
+            (e) => e.id === currentEnvironmentId,
+        )
+        let resolvedVars = vars.map((v) => {
+            let newValue = v.value
+            // Only modify string values for now, or handle arrays if needed.
+            // Assuming environment variables are simple replacements.
+            if (currentEnv) {
+                const replaceInString = (str: string) => {
+                    let s = str
+                    for (let envVal of currentEnv.values) {
+                        s = s.replace(
+                            new RegExp(`{{${envVal.key}}}`, 'g'),
+                            envVal.value,
+                        )
+                    }
+                    return s
+                }
+
+                if (typeof newValue === 'string') {
+                    newValue = replaceInString(newValue)
+                } else if (Array.isArray(newValue)) {
+                    newValue = newValue.map(replaceInString)
+                }
+            }
+            return { ...v, value: newValue }
+        })
+
         // For single variables
-        for (let v of vars) {
+        for (let v of resolvedVars) {
             text = text.replace(
                 new RegExp(`{{${v.key}}}`, 'g'),
                 String(v.value),
@@ -115,7 +167,7 @@ function App() {
             for (let i = 0; i < iterableSections.length; i++) {
                 let iterableSection = iterableSections[i]
                 let resulting = []
-                for (let v of vars) {
+                for (let v of resolvedVars) {
                     if (
                         Array.isArray(v.value) &&
                         iterableSection.includes(`{{${v.key}.label}}`)
@@ -181,6 +233,7 @@ function App() {
 
     const variablesSectionRef = useRef<HTMLDivElement>(null)
     const textsSectionRef = useRef<HTMLDivElement>(null)
+    const environmentsSectionRef = useRef<HTMLDivElement>(null)
 
     const scrollToVariables = () => {
         if (variablesSectionRef.current) {
@@ -213,7 +266,18 @@ function App() {
                 onScrollToVariables={scrollToVariables}
                 onScrollToTemplates={scrollToTexts}
                 onConvert={convertAll}
+                environments={environments}
+                currentEnvironmentId={currentEnvironmentId}
+                onEnvironmentChange={setCurrentEnvironmentId}
             />
+            <section ref={environmentsSectionRef}>
+                <Environments
+                    environments={environments}
+                    currentEnvironmentId={currentEnvironmentId}
+                    onEnvironmentsChange={setEnvironments}
+                    onCurrentEnvironmentChange={setCurrentEnvironmentId}
+                />
+            </section>
             <section ref={variablesSectionRef}>
                 <h1>Variables</h1>
                 <ul style={{ listStyleType: 'none' }}>
