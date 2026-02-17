@@ -26,6 +26,7 @@ export const Header = () => {
                     const savedDocument: SaveDocumentInterface = {
                         variables: jsonData.variables,
                         textResults: jsonData.textResults,
+                        environments: jsonData.environments || [],
                     }
                     loadToCacheFromFile(savedDocument)
                 }
