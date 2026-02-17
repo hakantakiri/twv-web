@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import dragIcon from './assets/drag.svg'
 import './App.css'
 import { Variable } from './components/Variable'
@@ -12,6 +12,7 @@ import {
 } from './services/cache.service'
 import { Header } from './components/Header'
 import { RichTextPair } from './components/RichTextPair'
+import { ToolsHeader } from './components/ToolsHeader'
 
 function App() {
     const [vars, setVars] = useState<VariableInterface[]>(getCacheVariables())
@@ -178,10 +179,42 @@ function App() {
         setVars(newVars)
     }
 
+    const variablesSectionRef = useRef<HTMLDivElement>(null)
+    const textsSectionRef = useRef<HTMLDivElement>(null)
+
+    const scrollToVariables = () => {
+        if (variablesSectionRef.current) {
+            const yOffset = -120 // Accounts for fixed headers
+            const element = variablesSectionRef.current
+            const y =
+                element.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset
+            window.scrollTo({ top: y, behavior: 'smooth' })
+        }
+    }
+
+    const scrollToTexts = () => {
+        if (textsSectionRef.current) {
+            const yOffset = -120 // Accounts for fixed headers
+            const element = textsSectionRef.current
+            const y =
+                element.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset
+            window.scrollTo({ top: y, behavior: 'smooth' })
+        }
+    }
+
     return (
         <>
             <Header />
-            <section>
+            <ToolsHeader
+                onScrollToVariables={scrollToVariables}
+                onScrollToTemplates={scrollToTexts}
+                onConvert={convertAll}
+            />
+            <section ref={variablesSectionRef}>
                 <h1>Variables</h1>
                 <ul style={{ listStyleType: 'none' }}>
                     {vars.map((v, i) => {
@@ -268,7 +301,7 @@ function App() {
                 </button>
             </section>
 
-            <section>
+            <section ref={textsSectionRef}>
                 <h1>Texts</h1>
                 <button onClick={convertAll}>Convert</button>
                 <ul style={{ listStyleType: 'none' }}>
