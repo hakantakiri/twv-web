@@ -4,6 +4,7 @@ import { EnvironmentInterface } from '../common/environment.interface'
 interface ToolsHeaderProps {
     onScrollToVariables: () => void
     onScrollToTemplates: () => void
+    onScrollToEnvironments: () => void
     onConvert: () => void
     environments: EnvironmentInterface[]
     currentEnvironmentId: string
@@ -13,6 +14,7 @@ interface ToolsHeaderProps {
 export const ToolsHeader: React.FC<ToolsHeaderProps> = ({
     onScrollToVariables,
     onScrollToTemplates,
+    onScrollToEnvironments,
     onConvert,
     environments,
     currentEnvironmentId,
@@ -25,14 +27,17 @@ export const ToolsHeader: React.FC<ToolsHeaderProps> = ({
                 display: 'flex',
                 gap: '10px',
                 padding: '10px',
-                position: 'sticky',
-                top: 0,
-                backgroundColor: 'white',
+                position: 'fixed',
+                top: '60px',
+                left: 0,
+                width: '100%',
+                boxSizing: 'border-box',
                 zIndex: 1000,
                 borderBottom: '1px solid #ccc',
                 alignItems: 'center',
             }}
         >
+            <button onClick={onScrollToEnvironments}>See environments</button>
             <button onClick={onScrollToVariables}>See variables</button>
             <button onClick={onScrollToTemplates}>See templates</button>
 

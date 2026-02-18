@@ -2,7 +2,7 @@
     max-width: 1920px;
     margin: 0 auto;
     padding: 2rem;
-    padding-top: 130px;
+    padding-top: 120px;
     text-align: center;
 }
 
@@ -128,4 +128,8 @@
 .modal-close-button:hover {
     color: #646cff; /* Match existing hover color */
     border-color: transparent; /* Reset border for this button */
+}
+
+.rich-text-preview .ck.ck-editor__editable {
+    background-color: #fff !important;
 }

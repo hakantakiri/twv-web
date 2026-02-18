@@ -259,12 +259,25 @@ function App() {
         }
     }
 
+    const scrollToEnvironments = () => {
+        if (environmentsSectionRef.current) {
+            const yOffset = -120 // Accounts for fixed headers
+            const element = environmentsSectionRef.current
+            const y =
+                element.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset
+            window.scrollTo({ top: y, behavior: 'smooth' })
+        }
+    }
+
     return (
         <>
             <Header />
             <ToolsHeader
                 onScrollToVariables={scrollToVariables}
                 onScrollToTemplates={scrollToTexts}
+                onScrollToEnvironments={scrollToEnvironments}
                 onConvert={convertAll}
                 environments={environments}
                 currentEnvironmentId={currentEnvironmentId}
@@ -366,7 +379,7 @@ function App() {
             </section>
 
             <section ref={textsSectionRef}>
-                <h1>Texts</h1>
+                <h1>Templates</h1>
                 <button onClick={convertAll}>Convert</button>
                 <ul style={{ listStyleType: 'none' }}>
                     {textResults.map((t, i) => {

@@ -66,7 +66,9 @@ export const RichText = (props: RichTextProps) => {
     }, [props.content])
 
     return (
-        <section>
+        <section
+            className={props.type === 'preview' ? 'rich-text-preview' : ''}
+        >
             <CKEditor
                 editor={ClassicEditor}
                 data={props.content}
