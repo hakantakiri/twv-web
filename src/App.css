@@ -130,14 +130,32 @@
     border-color: transparent; /* Reset border for this button */
 }
 
+.template-panel {
+    margin-bottom: 1.5rem;
+}
+
+.template-panel-header,
 .rich-text-preview-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 0.75rem;
     margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
+.template-panel-header label {
+    font-weight: 600;
+}
+
+.template-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.template-actions button,
 .rich-text-preview-header button {
     min-width: 96px;
 }

@@ -22,6 +22,8 @@ import {
     setCacheCurrentEnvironmentId,
 } from './services/cache.service'
 
+type TemplateMode = 'edit' | 'preview'
+
 function App() {
     const [vars, setVars] = useState<VariableInterface[]>(getCacheVariables())
     const [textResults, SetTextResults] = useState<TextResultInterface[]>(
@@ -35,8 +37,10 @@ function App() {
                 ]
             }
             return cacheTextResults
-            return cacheTextResults
         })(),
+    )
+    const [templateModes, setTemplateModes] = useState<TemplateMode[]>(
+        textResults.map(() => 'edit'),
     )
     const [environments, setEnvironments] = useState<EnvironmentInterface[]>(
         getCacheEnvironments(),
@@ -82,30 +86,30 @@ function App() {
     }
 
     const updateKey = (key: string, index: number) => {
-        let nVars = [...vars]
+        const nVars = [...vars]
         nVars[index].key = key
         setVars(nVars)
     }
     const updateValue = (value: string | string[], index: number) => {
-        let nVars = [...vars]
+        const nVars = [...vars]
         nVars[index].value = value
         setVars(nVars)
     }
 
     const updateLabel = (label: string | string[], index: number) => {
-        let nVars = [...vars]
+        const nVars = [...vars]
         nVars[index].label = label
         setVars(nVars)
     }
 
     const clearValue = (index: number) => {
-        let newVar = [...vars]
+        const newVar = [...vars]
         newVar[index].value = ''
         setVars(newVar)
     }
 
     const deleteValue = (index: number) => {
-        let newVar = [...vars]
+        const newVar = [...vars]
         newVar.splice(index, 1)
         setVars(newVar)
     }
@@ -113,10 +117,11 @@ function App() {
     // Functions for Texts
     const addText = () => {
         SetTextResults([...textResults, { raw: '', converted: '' }])
+        setTemplateModes([...templateModes, 'edit'])
     }
 
     const updateText = (index: number, raw: string) => {
-        let newTexts = [...textResults]
+        const newTexts = [...textResults]
         newTexts[index].raw = raw
         SetTextResults(newTexts)
     }
@@ -126,14 +131,14 @@ function App() {
         const currentEnv = environments.find(
             (e) => e.id === currentEnvironmentId,
         )
-        let resolvedVars = vars.map((v) => {
+        const resolvedVars = vars.map((v) => {
             let newValue = v.value
             // Only modify string values for now, or handle arrays if needed.
             // Assuming environment variables are simple replacements.
             if (currentEnv) {
                 const replaceInString = (str: string) => {
                     let s = str
-                    for (let envVal of currentEnv.values) {
+                    for (const envVal of currentEnv.values) {
                         s = s.replace(
                             new RegExp(`{{${envVal.key}}}`, 'g'),
                             envVal.value,
@@ -152,27 +157,27 @@ function App() {
         })
 
         // For single variables
-        for (let v of resolvedVars) {
+        for (const v of resolvedVars) {
             text = text.replace(
                 new RegExp(`{{${v.key}}}`, 'g'),
                 String(v.value),
             )
         }
         // Identifies all iterative matches
-        let iterableSections = text.match(/:::(.*?):::/g)
+        const iterableSections = text.match(/:::(.*?):::/g)
         console.log('Found iterable sections')
         console.log(iterableSections)
         if (iterableSections) {
             // Prepares iterations for each match
             for (let i = 0; i < iterableSections.length; i++) {
-                let iterableSection = iterableSections[i]
-                let resulting = []
-                for (let v of resolvedVars) {
+                const iterableSection = iterableSections[i]
+                const resulting = []
+                for (const v of resolvedVars) {
                     if (
                         Array.isArray(v.value) &&
                         iterableSection.includes(`{{${v.key}.label}}`)
                     ) {
-                        let newSectionWithAllVarsReplaced = []
+                        const newSectionWithAllVarsReplaced = []
                         for (let j = 0; j < v.value.length; j++) {
                             let newSubForEachVar = iterableSection.slice(3, -3)
                             newSubForEachVar = newSubForEachVar.replace(
@@ -203,19 +208,48 @@ function App() {
         return text
     }
 
-    const convertAll = () => {
-        let texts = [...textResults]
-        for (let t of texts) {
-            t.converted = convert(t.raw)
-        }
-        console.log(texts)
+    const convertOne = (index: number) => {
+        const texts = textResults.map((textResult, i) => {
+            if (i !== index) {
+                return textResult
+            }
+
+            return {
+                ...textResult,
+                converted: convert(textResult.raw),
+            }
+        })
+
         SetTextResults(texts)
+        setTemplateModes(
+            textResults.map((_, i) =>
+                i === index ? 'preview' : (templateModes[i] ?? 'edit'),
+            ),
+        )
+    }
+
+    const convertAll = () => {
+        const texts = textResults.map((textResult) => ({
+            ...textResult,
+            converted: convert(textResult.raw),
+        }))
+        SetTextResults(texts)
+        setTemplateModes(texts.map(() => 'preview'))
+    }
+
+    const editText = (index: number) => {
+        setTemplateModes(
+            textResults.map((_, i) =>
+                i === index ? 'edit' : (templateModes[i] ?? 'edit'),
+            ),
+        )
     }
 
     const deleteText = (index: number) => {
-        let newTexts = [...textResults]
+        const newTexts = [...textResults]
         newTexts.splice(index, 1)
         SetTextResults(newTexts)
+        setTemplateModes(templateModes.filter((_, i) => i !== index))
     }
 
     // Functions for Drag and Drop
@@ -224,8 +258,8 @@ function App() {
         draggedIndex: number,
         draggedOverIndex: number,
     ) => {
-        let newVars = [...vars]
-        let draggedItem = newVars[draggedIndex]
+        const newVars = [...vars]
+        const draggedItem = newVars[draggedIndex]
         newVars.splice(draggedIndex, 1)
         newVars.splice(draggedOverIndex, 0, draggedItem)
         setVars(newVars)
@@ -396,8 +430,15 @@ function App() {
                                 /> */}
                                 <RichTextPair
                                     info={t}
+                                    mode={templateModes[i] ?? 'edit'}
                                     onUpdateText={(text: string) => {
                                         updateText(i, text)
+                                    }}
+                                    onEdit={() => {
+                                        editText(i)
+                                    }}
+                                    onConvert={() => {
+                                        convertOne(i)
                                     }}
                                     onDeleteText={() => {
                                         deleteText(i)

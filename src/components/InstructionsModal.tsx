@@ -40,6 +40,15 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({
                 <h3>Texts or templates</h3>
                 This are the templates that will vary in content dependind on
                 the variables.
+                <h4>Editing and converting</h4>
+                <p>
+                    Each template shows either the editable original or the
+                    converted preview. Use a template's <strong>Convert</strong>{' '}
+                    button to convert only that template. Use the global{' '}
+                    <strong>Convert</strong> button to convert every template.
+                    Use <strong>Edit</strong> on a converted preview to change
+                    that template again.
+                </p>
                 <h4>Using single variables</h4>
                 <p>To format goes as:</p>
                 <code>{'{{key}}'}</code>

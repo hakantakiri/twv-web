@@ -10,6 +10,7 @@ Live app: https://text-generator-with-variables.netlify.app/
 - Replace simple variables with `{{key}}` placeholders.
 - Expand list variables inside iterable template sections.
 - Define environments for values that change by context.
+- Switch each template between edit and converted preview modes.
 - Copy converted rich text previews to the clipboard.
 - Save the current workspace to a JSON file and load it later.
 - Persist active work in browser `localStorage`.
@@ -126,6 +127,10 @@ Open https://example.com/login
 
 Each converted rich text preview includes a **Copy** button. The copy action writes rich text HTML to the clipboard when the browser supports it and falls back to plain text otherwise.
 
+### Template Modes
+
+Templates show either the editable original or the converted preview, never both at the same time. Use a template's **Convert** button to convert only that template and switch it to preview mode. Use the global **Convert** button to convert every template and switch every template to preview mode. Use **Edit** on a preview to return that template to edit mode.
+
 ### Save And Load
 
 Use **Save as** to download the current browser cache as `save_document.json`.
@@ -149,7 +154,7 @@ The saved document contains:
 - `ToolsHeader`: Renders navigation buttons, active environment selector, and global Convert action.
 - `Environments`: Manages environment columns and shared environment keys.
 - `Variable`: Manages a single variable or list variable, including list item ordering.
-- `RichTextPair`: Displays one editable template, its converted preview, and the preview copy action.
+- `RichTextPair`: Displays one template in either edit or preview mode, including per-template Convert/Edit/Copy actions.
 - `RichText`: Wraps CKEditor for editor and read-only preview modes.
 - `InstructionsModal`: Shows in-app usage instructions.
 - `TextPair`: Legacy plain textarea implementation that is currently not used by `App`.

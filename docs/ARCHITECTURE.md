@@ -77,7 +77,7 @@ interface TextResultInterface {
 }
 ```
 
-`raw` stores the editable template HTML from CKEditor. `converted` stores the generated preview HTML.
+`raw` stores the editable template HTML from CKEditor. `converted` stores the generated preview HTML. Template edit/preview mode is UI-only React state and is not persisted in this model.
 
 `EnvironmentInterface`
 
@@ -139,7 +139,7 @@ The conversion logic lives in `App.tsx` in the `convert` function.
 8. Expand the section once per list item, replacing `{{key.label}}` and `{{key.value}}`.
 9. Join expanded rows with `<br/>` and replace the original iterable block.
 
-The global Convert button runs this conversion for every text/template pair and stores the generated HTML in `converted`.
+An individual template Convert button runs this conversion for that template, stores the generated HTML in `converted`, and switches that template to preview mode. The global Convert button runs this conversion for every text/template pair, stores every generated HTML value in `converted`, and switches every template to preview mode.
 
 ## Component Responsibilities
 
@@ -148,7 +148,7 @@ The global Convert button runs this conversion for every text/template pair and 
 - `ToolsHeader`: Provides quick navigation, active environment selection, and global conversion.
 - `Environments`: Manages environment names, shared keys, per-environment values, environment creation, key creation, and deletes.
 - `Variable`: Edits single variables and list variables, including list item add/delete/clear/reorder behavior.
-- `RichTextPair`: Connects one `TextResultInterface` to editable and preview rich text editors, and owns the converted preview copy-to-clipboard action.
+- `RichTextPair`: Connects one `TextResultInterface` to either the editable rich text editor or the converted preview, exposes per-template Convert/Edit controls, and owns the converted preview copy-to-clipboard action.
 - `RichText`: Configures CKEditor plugins, toolbar, table toolbar, editor mode, and preview mode.
 - `InstructionsModal`: Shows user-facing syntax examples.
 - `TextPair`: Legacy textarea-based template pair component, currently unused.
