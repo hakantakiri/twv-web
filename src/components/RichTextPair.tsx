@@ -4,7 +4,10 @@ import { RichText } from './RichText'
 
 interface RichTextPairProps {
     info: TextResultInterface
+    mode: 'edit' | 'preview'
     onUpdateText: (text: string) => void
+    onEdit: () => void
+    onConvert: () => void
     onDeleteText: () => void
 }
 
@@ -64,55 +67,72 @@ export const RichTextPair = (props: RichTextPairProps) => {
         }
     }
 
+    if (props.mode === 'edit') {
+        return (
+            <div className="template-panel">
+                <div className="template-panel-header">
+                    <label>Original</label>
+                    <div className="template-actions">
+                        <button type="button" onClick={props.onConvert}>
+                            Convert
+                        </button>
+                        <button
+                            type="button"
+                            onClick={props.onDeleteText}
+                            aria-label="Delete template"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                <RichText
+                    key="template-editor"
+                    content={props.info.raw}
+                    type="editor"
+                    onChange={(text: string) => {
+                        console.log('RichTextPairProps onChange: text', text)
+                        props.onUpdateText(text)
+                    }}
+                />
+            </div>
+        )
+    }
+
     return (
-        <div>
-            <label>Original</label>
-            <RichText
-                content={props.info.raw}
-                type="editor"
-                onChange={(text: string) => {
-                    console.log('RichTextPairProps onChange: text', text)
-                    props.onUpdateText(text)
-                }}
-            />
-            <div className="rich-text-preview-header">
+        <div className="template-panel">
+            <div className="template-panel-header">
                 <label>Converted</label>
-                <button
-                    type="button"
-                    onClick={copyConvertedText}
-                    disabled={!props.info.converted}
-                    aria-label="Copy converted rich text to clipboard"
-                >
-                    {copyStatus === 'copied'
-                        ? 'Copied'
-                        : copyStatus === 'error'
-                          ? 'Copy failed'
-                          : 'Copy'}
-                </button>
+                <div className="template-actions">
+                    <button type="button" onClick={props.onEdit}>
+                        Edit
+                    </button>
+                    <button
+                        type="button"
+                        onClick={copyConvertedText}
+                        disabled={!props.info.converted}
+                        aria-label="Copy converted rich text to clipboard"
+                    >
+                        {copyStatus === 'copied'
+                            ? 'Copied'
+                            : copyStatus === 'error'
+                              ? 'Copy failed'
+                              : 'Copy'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={props.onDeleteText}
+                        aria-label="Delete template"
+                    >
+                        Delete
+                    </button>
+                </div>
             </div>
             <RichText
+                key="template-preview"
                 content={props.info.converted}
                 type="preview"
                 onChange={() => {}}
             />
-            {/* <textarea
-                rows={20}
-                cols={60}
-                wrap="soft"
-                onChange={(e) => {
-                    props.onUpdateText(e.target.value)
-                }}
-                value={props.info.raw}
-            ></textarea>
-            <label>Converted</label> */}
-            {/* <textarea
-                rows={20}
-                cols={60}
-                wrap="soft"
-                value={props.info.converted}
-                onChange={() => {}}
-            ></textarea> */}
-            <button onClick={props.onDeleteText}>🗑️</button>
         </div>
     )
 }
