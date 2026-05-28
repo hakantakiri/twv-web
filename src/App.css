@@ -130,6 +130,18 @@
     border-color: transparent; /* Reset border for this button */
 }
 
+.rich-text-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.rich-text-preview-header button {
+    min-width: 96px;
+}
+
 .rich-text-preview .ck.ck-editor__editable {
     background-color: #fff !important;
 }

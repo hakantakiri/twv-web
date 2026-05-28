@@ -148,7 +148,7 @@ The global Convert button runs this conversion for every text/template pair and 
 - `ToolsHeader`: Provides quick navigation, active environment selection, and global conversion.
 - `Environments`: Manages environment names, shared keys, per-environment values, environment creation, key creation, and deletes.
 - `Variable`: Edits single variables and list variables, including list item add/delete/clear/reorder behavior.
-- `RichTextPair`: Connects one `TextResultInterface` to editable and preview rich text editors.
+- `RichTextPair`: Connects one `TextResultInterface` to editable and preview rich text editors, and owns the converted preview copy-to-clipboard action.
 - `RichText`: Configures CKEditor plugins, toolbar, table toolbar, editor mode, and preview mode.
 - `InstructionsModal`: Shows user-facing syntax examples.
 - `TextPair`: Legacy textarea-based template pair component, currently unused.
