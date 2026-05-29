@@ -11,7 +11,7 @@ Live app: https://text-generator-with-variables.netlify.app/
 - Expand list variables inside iterable template sections.
 - Define environments for values that change by context.
 - Switch each template between edit and converted preview modes.
-- Create file templates that convert XLSX files client-side by replacing spreadsheet placeholders.
+- Create file templates that convert XLSX, DOCX, and TXT files client-side by replacing placeholders.
 - Copy converted rich text previews to the clipboard.
 - Save the current workspace to a JSON file and load it later.
 - Persist active work in browser `localStorage`.
@@ -134,7 +134,7 @@ Templates show either the editable original or the converted preview, never both
 
 ### File Templates
 
-Use **File Templates** to select an `.xlsx` file, choose a download file name, and download a converted workbook. The app reads the workbook in the browser, replaces simple placeholders like `{{name}}` in text cells across all worksheets, and downloads the converted file.
+Use **File Templates** to select an `.xlsx`, `.docx`, or `.txt` file, choose a download file name, and download a converted copy. The app reads the file in the browser, replaces simple placeholders like `{{name}}`, and downloads the converted file.
 
 Each file template has a **Download file name** input. The filename can use variables and the active environment, for example:
 
@@ -142,7 +142,7 @@ Each file template has a **Download file name** input. The filename can use vari
 report-{{clientName}}-{{environmentName}}
 ```
 
-If the filename input is empty, the app downloads `<original-name>-converted.xlsx`. Uploaded spreadsheets are not sent to a server or stored in `localStorage`. XLSX conversion uses the selected environment before replacing variables. List-variable row expansion is only supported in rich text templates, not spreadsheets.
+If the filename input is empty, the app downloads `<original-name>-converted.<ext>`. If the filename input includes a different supported extension, the app replaces it with the uploaded file's extension. Uploaded files are not sent to a server or stored in `localStorage`. File conversion uses the selected environment before replacing variables. List-variable row expansion is only supported in rich text templates, not file templates.
 
 ### Save And Load
 
@@ -172,8 +172,8 @@ Saved files created before File Templates are still supported. When an old JSON 
 - `Variable`: Manages a single variable or list variable, including list item ordering.
 - `RichTextPair`: Displays one template in either edit or preview mode, including per-template Convert/Edit/Copy actions.
 - `RichText`: Wraps CKEditor for editor and read-only preview modes.
-- `FileTemplates`: Manages saved XLSX file-template rows.
-- `XlsxTemplateUploader`: Uploads an XLSX file, runs simple placeholder replacement, and downloads a converted workbook.
+- `FileTemplates`: Manages saved file-template rows.
+- `FileTemplateUploader`: Uploads XLSX, DOCX, or TXT files, runs simple placeholder replacement, and downloads a converted file.
 - `InstructionsModal`: Shows in-app usage instructions.
 - `TextPair`: Legacy plain textarea implementation that is currently not used by `App`.
 
@@ -185,6 +185,7 @@ The app stores working state in browser `localStorage` using these keys:
 - `textResults`
 - `environments`
 - `currentEnvironmentId`
+- `fileTemplates`
 
 The cache service in `src/services/cache.service.ts` reads and writes these values. The file service in `src/services/files.service.ts` creates the downloadable JSON file.
 

@@ -173,7 +173,7 @@
     padding: 0;
 }
 
-.xlsx-template-panel {
+.file-template-panel {
     margin-bottom: 1.5rem;
     padding: 1rem;
     border: 1px solid rgba(200, 200, 200, 0.2);
@@ -181,42 +181,42 @@
     text-align: left;
 }
 
-.xlsx-template-header {
+.file-template-header {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     align-items: flex-start;
 }
 
-.xlsx-template-header label {
+.file-template-header label {
     font-weight: 600;
 }
 
-.xlsx-template-panel p {
+.file-template-panel p {
     margin: 0.25rem 0 0;
 }
 
-.xlsx-file-name-row {
+.file-template-name-row {
     margin-top: 1rem;
 }
 
-.xlsx-file-name-row input {
+.file-template-name-row input {
     box-sizing: border-box;
     width: 100%;
 }
 
-.xlsx-upload-actions {
+.file-template-upload-actions {
     margin-top: 1rem;
 }
 
-.xlsx-upload-message {
+.file-template-upload-message {
     margin-top: 0.75rem;
 }
 
-.xlsx-upload-message.error {
+.file-template-upload-message.error {
     color: #ff6b6b;
 }
 
-.xlsx-upload-message.success {
+.file-template-upload-message.success {
     color: #4caf50;
 }

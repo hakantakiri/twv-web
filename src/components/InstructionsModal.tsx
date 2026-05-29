@@ -21,7 +21,8 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({
                 <p>
                     This tool allows you to generate texts uring variables and
                     templates where those variables will be replaced. It can
-                    also convert XLSX files using the same variables.
+                    also convert XLSX, DOCX, and TXT files using the same
+                    variables.
                 </p>
                 <h3>Variables</h3>
                 <p>In this section you can create:</p>
@@ -90,14 +91,15 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({
                 <code>color of orange is orange</code>
                 <h3>File Templates</h3>
                 <p>
-                    File Templates let you upload an XLSX file and download a
-                    converted copy. The file is processed only in your browser
-                    and is not stored in the saved JSON document.
+                    File Templates let you upload an XLSX, DOCX, or TXT file
+                    and download a converted copy. The file is processed only
+                    in your browser and is not stored in the saved JSON
+                    document.
                 </p>
                 <p>
                     Add one or more file template rows. Each row has a{' '}
                     <strong>Download file name</strong> input and an{' '}
-                    <strong>Upload XLSX</strong> button.
+                    <strong>Upload file</strong> button.
                 </p>
                 <p>
                     The download file name can use variables and the active
@@ -105,9 +107,12 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({
                 </p>
                 <code>{'report-{{clientName}}-{{environmentName}}'}</code>
                 <p>
-                    The spreadsheet can use simple placeholders like{' '}
-                    <code>{'{{name}}'}</code> inside text cells. List variable
-                    expansion is only supported in rich text templates.
+                    The file can use simple placeholders like{' '}
+                    <code>{'{{name}}'}</code>. XLSX placeholders are replaced
+                    in text cells, DOCX placeholders are rendered in the Word
+                    document, and TXT placeholders are replaced in plain text.
+                    List variable expansion is only supported in rich text
+                    templates.
                 </p>
             </div>
         </div>

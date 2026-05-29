@@ -12,7 +12,7 @@ The app is a Vite + React + TypeScript single-page application.
 - `src/services/cache.service.ts` isolates browser `localStorage` reads and writes.
 - `src/services/files.service.ts` handles browser file downloads.
 - `src/services/template.service.ts` contains shared placeholder conversion rules.
-- `src/services/xlsx.service.ts` handles client-side XLSX read, replacement, and download.
+- `src/services/fileTemplates.service.ts` handles client-side XLSX, DOCX, and TXT read, replacement, and download.
 - CKEditor powers rich text editing and preview through the `RichText` component.
 
 ## Project Structure
@@ -43,12 +43,12 @@ The app is a Vite + React + TypeScript single-page application.
 │   │   ├── TextPair.tsx
 │   │   ├── ToolsHeader.tsx
 │   │   ├── Variable.tsx
-│   │   └── XlsxTemplateUploader.tsx
+│   │   └── FileTemplateUploader.tsx
 │   ├── services/
 │   │   ├── cache.service.ts
 │   │   ├── files.service.ts
 │   │   ├── template.service.ts
-│   │   └── xlsx.service.ts
+│   │   └── fileTemplates.service.ts
 │   ├── App.css
 │   ├── App.tsx
 │   ├── index.css
@@ -120,7 +120,7 @@ interface FileTemplateInterface {
 }
 ```
 
-File template rows persist output filename templates only. Uploaded XLSX files are never stored in localStorage or saved JSON.
+File template rows persist output filename templates only. Uploaded files are never stored in localStorage or saved JSON.
 
 ## State And Persistence Flow
 
@@ -162,18 +162,20 @@ The conversion logic lives in `src/services/template.service.ts`.
 
 An individual template Convert button runs this conversion for that template, stores the generated HTML in `converted`, and switches that template to preview mode. The global Convert button runs this conversion for every text/template pair, stores every generated HTML value in `converted`, and switches every template to preview mode.
 
-## XLSX Conversion Flow
+## File Template Conversion Flow
 
-The XLSX uploader lives in the File Templates section and runs entirely in the browser.
+The file template uploader lives in the File Templates section and runs entirely in the browser.
 
 1. `FileTemplates` renders persisted file-template rows.
-2. `XlsxTemplateUploader` receives a row's output filename template plus the current variables, environments, and active environment from `App`.
-3. The selected file must have an `.xlsx` name.
-4. `xlsx.service.ts` lazy-loads `exceljs`, reads the workbook from the uploaded file's `ArrayBuffer`, and scans every worksheet.
-5. Text cells run through simple placeholder replacement from `template.service.ts`.
-6. The output filename template resolves variables and `{{environmentName}}`, sanitizes path-unsafe characters, ensures `.xlsx`, and falls back to `<original-name>-converted.xlsx` when empty.
+2. `FileTemplateUploader` receives a row's output filename template plus the current variables, environments, and active environment from `App`.
+3. The selected file must have an `.xlsx`, `.docx`, or `.txt` name.
+4. `fileTemplates.service.ts` chooses the processor by extension.
+5. XLSX conversion lazy-loads `exceljs`, scans every worksheet, and replaces simple placeholders in text cells.
+6. DOCX conversion lazy-loads `docxtemplater` and `pizzip`, renders placeholders with `{{` and `}}` delimiters, and preserves normal Word formatting around placeholders.
+7. TXT conversion reads the file as text and runs simple placeholder replacement.
+8. The output filename template resolves variables and `{{environmentName}}`, sanitizes path-unsafe characters, ensures the uploaded file extension, and falls back to `<original-name>-converted.<ext>` when empty.
 
-XLSX conversion does not persist the uploaded file. It does not expand list-variable sections or evaluate formulas.
+File template conversion does not persist uploaded files. It does not expand list-variable sections, evaluate formulas, or support legacy `.xls` or `.doc` files.
 
 ## Component Responsibilities
 
@@ -185,7 +187,7 @@ XLSX conversion does not persist the uploaded file. It does not expand list-vari
 - `RichTextPair`: Connects one `TextResultInterface` to either the editable rich text editor or the converted preview, exposes per-template Convert/Edit controls, and owns the converted preview copy-to-clipboard action.
 - `RichText`: Configures CKEditor plugins, toolbar, table toolbar, editor mode, and preview mode.
 - `FileTemplates`: Manages file-template rows and persisted output filename templates.
-- `XlsxTemplateUploader`: Owns XLSX upload state, status messaging, and calls the workbook processing service.
+- `FileTemplateUploader`: Owns file upload state, status messaging, and calls the file-template processing service.
 - `InstructionsModal`: Shows user-facing syntax examples.
 - `TextPair`: Legacy textarea-based template pair component, currently unused.
 

@@ -2,9 +2,9 @@ import { ChangeEvent, useRef, useState } from 'react'
 import { EnvironmentInterface } from '../common/environment.interface'
 import { FileTemplateInterface } from '../common/fileTemplate.interface'
 import { VariableInterface } from '../common/variable.interface'
-import { processXlsxFile } from '../services/xlsx.service'
+import { processFileTemplate } from '../services/fileTemplates.service'
 
-interface XlsxTemplateUploaderProps {
+interface FileTemplateUploaderProps {
     fileTemplate: FileTemplateInterface
     variables: VariableInterface[]
     environments: EnvironmentInterface[]
@@ -15,14 +15,14 @@ interface XlsxTemplateUploaderProps {
 
 type UploadStatus = 'idle' | 'processing' | 'success' | 'error'
 
-export const XlsxTemplateUploader = ({
+export const FileTemplateUploader = ({
     fileTemplate,
     variables,
     environments,
     currentEnvironmentId,
     onOutputFileNameTemplateChange,
     onDelete,
-}: XlsxTemplateUploaderProps) => {
+}: FileTemplateUploaderProps) => {
     const inputRef = useRef<HTMLInputElement>(null)
     const [status, setStatus] = useState<UploadStatus>('idle')
     const [message, setMessage] = useState('')
@@ -33,31 +33,26 @@ export const XlsxTemplateUploader = ({
             return
         }
 
-        if (!file.name.toLowerCase().endsWith('.xlsx')) {
-            setStatus('error')
-            setMessage('Upload an .xlsx file.')
-            e.target.value = ''
-            return
-        }
-
         try {
             setStatus('processing')
             setMessage('Processing file...')
-            const result = await processXlsxFile(file, {
-                variables,
-                environments,
-                currentEnvironmentId,
-            }, fileTemplate.outputFileNameTemplate)
-            setStatus('success')
-            setMessage(
-                `Downloaded ${result.fileName}. Replaced ${result.replacedCells} cell${result.replacedCells === 1 ? '' : 's'}.`,
+            const result = await processFileTemplate(
+                file,
+                {
+                    variables,
+                    environments,
+                    currentEnvironmentId,
+                },
+                fileTemplate.outputFileNameTemplate,
             )
+            setStatus('success')
+            setMessage(`Downloaded ${result.fileName}. ${result.summary}`)
         } catch (error) {
             setStatus('error')
             setMessage(
                 error instanceof Error
                     ? error.message
-                    : 'The XLSX file could not be processed.',
+                    : 'The file could not be processed.',
             )
         } finally {
             e.target.value = ''
@@ -65,19 +60,20 @@ export const XlsxTemplateUploader = ({
     }
 
     return (
-        <div className="xlsx-template-panel">
-            <div className="xlsx-template-header">
+        <div className="file-template-panel">
+            <div className="file-template-header">
                 <div>
                     <label htmlFor={`file-template-${fileTemplate.id}`}>
                         Download file name
                     </label>
                     <p>
-                        Use variables like {'{{name}}'} or {'{{environmentName}}'}.
+                        Use variables like {'{{name}}'} or{' '}
+                        {'{{environmentName}}'}.
                     </p>
                 </div>
                 <button onClick={onDelete}>Remove</button>
             </div>
-            <div className="xlsx-file-name-row">
+            <div className="file-template-name-row">
                 <input
                     id={`file-template-${fileTemplate.id}`}
                     value={fileTemplate.outputFileNameTemplate}
@@ -87,24 +83,26 @@ export const XlsxTemplateUploader = ({
                     placeholder="report-{{client}}"
                 />
             </div>
-            <div className="xlsx-upload-actions">
+            <div className="file-template-upload-actions">
                 <button
                     onClick={() => inputRef.current?.click()}
                     disabled={status === 'processing'}
                 >
-                    {status === 'processing' ? 'Processing...' : 'Upload XLSX'}
+                    {status === 'processing' ? 'Processing...' : 'Upload file'}
                 </button>
                 <input
                     ref={inputRef}
                     type="file"
-                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    accept=".xlsx,.docx,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
                     onChange={handleFileChange}
                     disabled={status === 'processing'}
                     style={{ display: 'none' }}
                 />
             </div>
             {message && (
-                <p className={`xlsx-upload-message ${status}`}>{message}</p>
+                <p className={`file-template-upload-message ${status}`}>
+                    {message}
+                </p>
             )}
         </div>
     )
