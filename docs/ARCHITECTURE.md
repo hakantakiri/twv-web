@@ -7,10 +7,12 @@ This document describes the current structure and behavior of the Text Generator
 The app is a Vite + React + TypeScript single-page application.
 
 - `src/main.tsx` mounts the React application.
-- `src/App.tsx` owns the core state, conversion logic, section scrolling, and drag-and-drop ordering.
+- `src/App.tsx` owns the core state, section scrolling, and drag-and-drop ordering.
 - Components receive current data and callback props from `App`; most business behavior stays in `App`.
 - `src/services/cache.service.ts` isolates browser `localStorage` reads and writes.
-- `src/services/files.service.ts` handles JSON download creation.
+- `src/services/files.service.ts` handles browser file downloads.
+- `src/services/template.service.ts` contains shared placeholder conversion rules.
+- `src/services/xlsx.service.ts` handles client-side XLSX read, replacement, and download.
 - CKEditor powers rich text editing and preview through the `RichText` component.
 
 ## Project Structure
@@ -27,21 +29,26 @@ The app is a Vite + React + TypeScript single-page application.
 │   │   └── react.svg
 │   ├── common/
 │   │   ├── environment.interface.ts
+│   │   ├── fileTemplate.interface.ts
 │   │   ├── saveDocument.interface.ts
 │   │   ├── textResult.interface.ts
 │   │   └── variable.interface.ts
 │   ├── components/
 │   │   ├── Environments.tsx
+│   │   ├── FileTemplates.tsx
 │   │   ├── Header.tsx
 │   │   ├── InstructionsModal.tsx
 │   │   ├── RichText.tsx
 │   │   ├── RichTextPair.tsx
 │   │   ├── TextPair.tsx
 │   │   ├── ToolsHeader.tsx
-│   │   └── Variable.tsx
+│   │   ├── Variable.tsx
+│   │   └── XlsxTemplateUploader.tsx
 │   ├── services/
 │   │   ├── cache.service.ts
-│   │   └── files.service.ts
+│   │   ├── files.service.ts
+│   │   ├── template.service.ts
+│   │   └── xlsx.service.ts
 │   ├── App.css
 │   ├── App.tsx
 │   ├── index.css
@@ -98,10 +105,22 @@ interface SaveDocumentInterface {
   variables: VariableInterface[]
   textResults: TextResultInterface[]
   environments: EnvironmentInterface[]
+  fileTemplates: FileTemplateInterface[]
 }
 ```
 
 This is the JSON import/export shape.
+
+`FileTemplateInterface`
+
+```ts
+interface FileTemplateInterface {
+  id: string
+  outputFileNameTemplate: string
+}
+```
+
+File template rows persist output filename templates only. Uploaded XLSX files are never stored in localStorage or saved JSON.
 
 ## State And Persistence Flow
 
@@ -111,6 +130,7 @@ On startup, `App` initializes state from `localStorage`:
 - `textResults` from `getCacheTextResults()`
 - `environments` from `getCacheEnvironments()`
 - `currentEnvironmentId` from `getCacheCurrentEnvironmentId()`
+- `fileTemplates` from `getCacheFileTemplates()`
 
 If no templates exist in cache, `App` creates three empty text/template pairs.
 
@@ -120,14 +140,15 @@ State changes are persisted through React effects:
 - Text changes call `setTextResultsCache`.
 - Environment changes call `setEnvironmentsToCache`.
 - Active environment changes call `setCacheCurrentEnvironmentId`.
+- File template changes call `setFileTemplatesToCache`.
 
 The header export action reads the cached document with `getCacheToDownload()` and downloads it as `save_document.json`.
 
-The header import action parses a selected JSON file, checks for `variables` and `textResults`, falls back to an empty `environments` array when missing, writes the data to cache, and reloads the page.
+The header import action parses a selected JSON file, checks for `variables` and `textResults`, falls back to an empty `environments` array when missing, falls back to one default file-template row when `fileTemplates` is missing, writes the data to cache, and reloads the page.
 
 ## Template Conversion Flow
 
-The conversion logic lives in `App.tsx` in the `convert` function.
+The conversion logic lives in `src/services/template.service.ts`.
 
 1. Resolve the active environment by `currentEnvironmentId`.
 2. Create a resolved copy of variables.
@@ -141,6 +162,19 @@ The conversion logic lives in `App.tsx` in the `convert` function.
 
 An individual template Convert button runs this conversion for that template, stores the generated HTML in `converted`, and switches that template to preview mode. The global Convert button runs this conversion for every text/template pair, stores every generated HTML value in `converted`, and switches every template to preview mode.
 
+## XLSX Conversion Flow
+
+The XLSX uploader lives in the File Templates section and runs entirely in the browser.
+
+1. `FileTemplates` renders persisted file-template rows.
+2. `XlsxTemplateUploader` receives a row's output filename template plus the current variables, environments, and active environment from `App`.
+3. The selected file must have an `.xlsx` name.
+4. `xlsx.service.ts` lazy-loads `exceljs`, reads the workbook from the uploaded file's `ArrayBuffer`, and scans every worksheet.
+5. Text cells run through simple placeholder replacement from `template.service.ts`.
+6. The output filename template resolves variables and `{{environmentName}}`, sanitizes path-unsafe characters, ensures `.xlsx`, and falls back to `<original-name>-converted.xlsx` when empty.
+
+XLSX conversion does not persist the uploaded file. It does not expand list-variable sections or evaluate formulas.
+
 ## Component Responsibilities
 
 - `App`: Coordinates application state, cache sync, conversion, drag-and-drop variable ordering, and section navigation.
@@ -150,6 +184,8 @@ An individual template Convert button runs this conversion for that template, st
 - `Variable`: Edits single variables and list variables, including list item add/delete/clear/reorder behavior.
 - `RichTextPair`: Connects one `TextResultInterface` to either the editable rich text editor or the converted preview, exposes per-template Convert/Edit controls, and owns the converted preview copy-to-clipboard action.
 - `RichText`: Configures CKEditor plugins, toolbar, table toolbar, editor mode, and preview mode.
+- `FileTemplates`: Manages file-template rows and persisted output filename templates.
+- `XlsxTemplateUploader`: Owns XLSX upload state, status messaging, and calls the workbook processing service.
 - `InstructionsModal`: Shows user-facing syntax examples.
 - `TextPair`: Legacy textarea-based template pair component, currently unused.
 

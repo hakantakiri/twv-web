@@ -63,7 +63,7 @@ export const RichText = (props: RichTextProps) => {
             'RichText of type ' + props.type + ' updated: props.content',
             props.content,
         )
-    }, [props.content])
+    }, [props.content, props.type])
 
     return (
         <section

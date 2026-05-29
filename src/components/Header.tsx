@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { ChangeEvent, useRef, useState } from 'react'
 import { SaveDocumentInterface } from '../common/saveDocument.interface'
 import {
     getCacheToDownload,
+    getDefaultFileTemplates,
     loadToCacheFromFile,
 } from '../services/cache.service'
 import { downloadFile } from '../services/files.service'
@@ -16,9 +17,14 @@ export const Header = () => {
         downloadFile(currentCache)
     }
 
-    const openFile = (e: any) => {
+    const openFile = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) {
+            return
+        }
+
         const fileReader = new FileReader()
-        fileReader.readAsText(e.target.files[0], 'UTF-8')
+        fileReader.readAsText(file, 'UTF-8')
         fileReader.onload = (e) => {
             if (e.target?.result && typeof e.target.result == 'string') {
                 const jsonData = JSON.parse(e.target?.result)
@@ -27,6 +33,9 @@ export const Header = () => {
                         variables: jsonData.variables,
                         textResults: jsonData.textResults,
                         environments: jsonData.environments || [],
+                        fileTemplates: Array.isArray(jsonData.fileTemplates)
+                            ? jsonData.fileTemplates
+                            : getDefaultFileTemplates(),
                     }
                     loadToCacheFromFile(savedDocument)
                 }

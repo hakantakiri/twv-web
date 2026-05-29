@@ -1,7 +1,24 @@
 import { EnvironmentInterface } from '../common/environment.interface'
+import { FileTemplateInterface } from '../common/fileTemplate.interface'
 import { SaveDocumentInterface } from '../common/saveDocument.interface'
 import { TextResultInterface } from '../common/textResult.interface'
 import { VariableInterface } from '../common/variable.interface'
+
+const createId = () => {
+    return (
+        globalThis.crypto?.randomUUID?.() ||
+        `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    )
+}
+
+export const createDefaultFileTemplate = (): FileTemplateInterface => ({
+    id: createId(),
+    outputFileNameTemplate: '',
+})
+
+export const getDefaultFileTemplates = (): FileTemplateInterface[] => [
+    createDefaultFileTemplate(),
+]
 
 export const getCacheVariables = (): VariableInterface[] => {
     const variablesString: string | null = localStorage.getItem('variables')
@@ -32,11 +49,25 @@ export const getCacheTextResults = (): TextResultInterface[] => {
     return JSON.parse(textResultsString)
 }
 
+export const getCacheFileTemplates = (): FileTemplateInterface[] => {
+    const fileTemplatesString: string | null =
+        localStorage.getItem('fileTemplates')
+    if (!fileTemplatesString) {
+        return getDefaultFileTemplates()
+    }
+
+    const fileTemplates = JSON.parse(fileTemplatesString)
+    return Array.isArray(fileTemplates)
+        ? fileTemplates
+        : getDefaultFileTemplates()
+}
+
 export const getCacheToDownload = (): SaveDocumentInterface => {
     return {
         variables: getCacheVariables(),
         textResults: getCacheTextResults(),
         environments: getCacheEnvironments(),
+        fileTemplates: getCacheFileTemplates(),
     }
 }
 
@@ -46,6 +77,9 @@ export const loadToCacheFromFile = (
     setVariablesToCache(savedDocument.variables)
     setTextResultsCache(savedDocument.textResults)
     setEnvironmentsToCache(savedDocument.environments || [])
+    setFileTemplatesToCache(
+        savedDocument.fileTemplates || getDefaultFileTemplates(),
+    )
     window.location.reload()
 }
 
@@ -61,6 +95,12 @@ export const setEnvironmentsToCache = (
     environments: EnvironmentInterface[],
 ) => {
     localStorage.setItem('environments', JSON.stringify(environments))
+}
+
+export const setFileTemplatesToCache = (
+    fileTemplates: FileTemplateInterface[],
+) => {
+    localStorage.setItem('fileTemplates', JSON.stringify(fileTemplates))
 }
 
 export const setCacheCurrentEnvironmentId = (id: string) => {

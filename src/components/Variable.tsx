@@ -24,38 +24,38 @@ export const Variable = (props: VariableProps) => {
     }
 
     const updateListItemValue = (index: number, value: string) => {
-        let newList = [...(props.info.value as Array<string>)]
+        const newList = [...(props.info.value as Array<string>)]
         newList[index] = value
         props.onValueChange(newList)
     }
 
     const updateListItemLabel = (index: number, label: string) => {
-        let newList = [...(props.info.label as Array<string>)]
+        const newList = [...(props.info.label as Array<string>)]
         newList[index] = label
         props.onLabelChange(newList)
     }
 
     const addListItem = () => {
-        let newList = [...(props.info.value as Array<string>)]
+        const newList = [...(props.info.value as Array<string>)]
         newList.push('')
         props.onValueChange(newList)
-        let newLabel = [...(props.info.label as Array<string>)]
+        const newLabel = [...(props.info.label as Array<string>)]
         newLabel.push('')
         props.onLabelChange(newLabel)
     }
 
     const clearListItem = (index: number) => {
-        let newList = [...(props.info.value as Array<string>)]
+        const newList = [...(props.info.value as Array<string>)]
         newList[index] = ''
         props.onValueChange(newList)
     }
 
     const deleteListItem = (index: number) => {
         if (window.confirm("Are you sure you want to delete this item?")) {
-            let newList = [...(props.info.value as Array<string>)]
+            const newList = [...(props.info.value as Array<string>)]
             newList.splice(index, 1)
             props.onValueChange(newList)
-            let newLabel = [...(props.info.label as Array<string>)]
+            const newLabel = [...(props.info.label as Array<string>)]
             newLabel.splice(index, 1)
             props.onLabelChange(newLabel)
         }
@@ -63,14 +63,14 @@ export const Variable = (props: VariableProps) => {
 
     // Functions for Drag and Drop
     const updatePositionOnSuccessDrag = (draggedIndex: number, draggedOverIndex: number) => {
-        let newVars = [...(props.info.value as Array<string>)]
-        let draggedItem = newVars[draggedIndex]
+        const newVars = [...(props.info.value as Array<string>)]
+        const draggedItem = newVars[draggedIndex]
         newVars.splice(draggedIndex, 1)
         newVars.splice(draggedOverIndex, 0, draggedItem)
         props.onValueChange(newVars)
 
-        let newLabel = [...(props.info.label as Array<string>)]
-        let draggedLabel = newLabel[draggedIndex]
+        const newLabel = [...(props.info.label as Array<string>)]
+        const draggedLabel = newLabel[draggedIndex]
         newLabel.splice(draggedIndex, 1)
         newLabel.splice(draggedOverIndex, 0, draggedLabel)
         props.onLabelChange(newLabel)

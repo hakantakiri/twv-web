@@ -163,3 +163,60 @@
 .rich-text-preview .ck.ck-editor__editable {
     background-color: #fff !important;
 }
+
+.file-templates-description {
+    margin-top: 0;
+}
+
+.file-template-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.xlsx-template-panel {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(200, 200, 200, 0.2);
+    border-radius: 8px;
+    text-align: left;
+}
+
+.xlsx-template-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.xlsx-template-header label {
+    font-weight: 600;
+}
+
+.xlsx-template-panel p {
+    margin: 0.25rem 0 0;
+}
+
+.xlsx-file-name-row {
+    margin-top: 1rem;
+}
+
+.xlsx-file-name-row input {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.xlsx-upload-actions {
+    margin-top: 1rem;
+}
+
+.xlsx-upload-message {
+    margin-top: 0.75rem;
+}
+
+.xlsx-upload-message.error {
+    color: #ff6b6b;
+}
+
+.xlsx-upload-message.success {
+    color: #4caf50;
+}

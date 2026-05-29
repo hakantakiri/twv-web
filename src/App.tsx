@@ -14,13 +14,19 @@ import { Header } from './components/Header'
 import { RichTextPair } from './components/RichTextPair'
 import { ToolsHeader } from './components/ToolsHeader'
 import { Environments } from './components/Environments'
+import { FileTemplates } from './components/FileTemplates'
+import { FileTemplateInterface } from './common/fileTemplate.interface'
 import { EnvironmentInterface } from './common/environment.interface'
 import {
+    createDefaultFileTemplate,
     getCacheEnvironments,
+    getCacheFileTemplates,
     setEnvironmentsToCache,
+    setFileTemplatesToCache,
     getCacheCurrentEnvironmentId,
     setCacheCurrentEnvironmentId,
 } from './services/cache.service'
+import { convertTemplate } from './services/template.service'
 
 type TemplateMode = 'edit' | 'preview'
 
@@ -48,6 +54,9 @@ function App() {
     const [currentEnvironmentId, setCurrentEnvironmentId] = useState<string>(
         getCacheCurrentEnvironmentId(),
     )
+    const [fileTemplates, setFileTemplates] = useState<FileTemplateInterface[]>(
+        getCacheFileTemplates(),
+    )
     const [draggedIndex, setDraggedIndex] = useState<number>(-1)
     const [draggedOverIndex, setDraggedOverIndex] = useState<number>(-1)
 
@@ -68,6 +77,10 @@ function App() {
     useEffect(() => {
         setCacheCurrentEnvironmentId(currentEnvironmentId)
     }, [currentEnvironmentId])
+
+    useEffect(() => {
+        setFileTemplatesToCache(fileTemplates)
+    }, [fileTemplates])
 
     // Functions for Variables
     const addVariable = (
@@ -126,87 +139,13 @@ function App() {
         SetTextResults(newTexts)
     }
 
-    const convert = (text: string) => {
-        // Resolve environment variables first
-        const currentEnv = environments.find(
-            (e) => e.id === currentEnvironmentId,
-        )
-        const resolvedVars = vars.map((v) => {
-            let newValue = v.value
-            // Only modify string values for now, or handle arrays if needed.
-            // Assuming environment variables are simple replacements.
-            if (currentEnv) {
-                const replaceInString = (str: string) => {
-                    let s = str
-                    for (const envVal of currentEnv.values) {
-                        s = s.replace(
-                            new RegExp(`{{${envVal.key}}}`, 'g'),
-                            envVal.value,
-                        )
-                    }
-                    return s
-                }
+    const getTemplateContext = () => ({
+        variables: vars,
+        environments,
+        currentEnvironmentId,
+    })
 
-                if (typeof newValue === 'string') {
-                    newValue = replaceInString(newValue)
-                } else if (Array.isArray(newValue)) {
-                    newValue = newValue.map(replaceInString)
-                }
-            }
-            return { ...v, value: newValue }
-        })
-
-        // For single variables
-        for (const v of resolvedVars) {
-            text = text.replace(
-                new RegExp(`{{${v.key}}}`, 'g'),
-                String(v.value),
-            )
-        }
-        // Identifies all iterative matches
-        const iterableSections = text.match(/:::(.*?):::/g)
-        console.log('Found iterable sections')
-        console.log(iterableSections)
-        if (iterableSections) {
-            // Prepares iterations for each match
-            for (let i = 0; i < iterableSections.length; i++) {
-                const iterableSection = iterableSections[i]
-                const resulting = []
-                for (const v of resolvedVars) {
-                    if (
-                        Array.isArray(v.value) &&
-                        iterableSection.includes(`{{${v.key}.label}}`)
-                    ) {
-                        const newSectionWithAllVarsReplaced = []
-                        for (let j = 0; j < v.value.length; j++) {
-                            let newSubForEachVar = iterableSection.slice(3, -3)
-                            newSubForEachVar = newSubForEachVar.replace(
-                                new RegExp(`{{${v.key}.label}}`, 'g'),
-                                String(v.label[j]),
-                            )
-                            newSubForEachVar = newSubForEachVar.replace(
-                                new RegExp(`{{${v.key}.value}}`, 'g'),
-                                String(v.value[j]),
-                            )
-                            newSectionWithAllVarsReplaced.push(newSubForEachVar)
-                        }
-                        // resulting.push(newSectionWithAllVarsReplaced.join('\n'))
-                        resulting.push(
-                            newSectionWithAllVarsReplaced.join('<br/>'),
-                        )
-                    }
-                }
-                if (resulting.length > 0) {
-                    // text = text.replace(iterableSection, resulting.join('\n'))
-                    text = text.replace(
-                        iterableSection,
-                        resulting.join('<br/>'),
-                    )
-                }
-            }
-        }
-        return text
-    }
+    const convert = (text: string) => convertTemplate(text, getTemplateContext())
 
     const convertOne = (index: number) => {
         const texts = textResults.map((textResult, i) => {
@@ -252,6 +191,29 @@ function App() {
         setTemplateModes(templateModes.filter((_, i) => i !== index))
     }
 
+    const addFileTemplate = () => {
+        setFileTemplates([...fileTemplates, createDefaultFileTemplate()])
+    }
+
+    const updateFileTemplate = (
+        id: string,
+        update: Partial<FileTemplateInterface>,
+    ) => {
+        setFileTemplates(
+            fileTemplates.map((fileTemplate) =>
+                fileTemplate.id === id
+                    ? { ...fileTemplate, ...update }
+                    : fileTemplate,
+            ),
+        )
+    }
+
+    const deleteFileTemplate = (id: string) => {
+        setFileTemplates(
+            fileTemplates.filter((fileTemplate) => fileTemplate.id !== id),
+        )
+    }
+
     // Functions for Drag and Drop
 
     const updatePositionOnSuccessDrag = (
@@ -267,6 +229,7 @@ function App() {
 
     const variablesSectionRef = useRef<HTMLDivElement>(null)
     const textsSectionRef = useRef<HTMLDivElement>(null)
+    const fileTemplatesSectionRef = useRef<HTMLDivElement>(null)
     const environmentsSectionRef = useRef<HTMLDivElement>(null)
 
     const scrollToVariables = () => {
@@ -293,6 +256,18 @@ function App() {
         }
     }
 
+    const scrollToFileTemplates = () => {
+        if (fileTemplatesSectionRef.current) {
+            const yOffset = -120 // Accounts for fixed headers
+            const element = fileTemplatesSectionRef.current
+            const y =
+                element.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset
+            window.scrollTo({ top: y, behavior: 'smooth' })
+        }
+    }
+
     const scrollToEnvironments = () => {
         if (environmentsSectionRef.current) {
             const yOffset = -120 // Accounts for fixed headers
@@ -311,6 +286,7 @@ function App() {
             <ToolsHeader
                 onScrollToVariables={scrollToVariables}
                 onScrollToTemplates={scrollToTexts}
+                onScrollToFileTemplates={scrollToFileTemplates}
                 onScrollToEnvironments={scrollToEnvironments}
                 onConvert={convertAll}
                 environments={environments}
@@ -449,6 +425,18 @@ function App() {
                     })}
                 </ul>
                 <button onClick={addText}>Add Text</button>
+            </section>
+
+            <section ref={fileTemplatesSectionRef}>
+                <FileTemplates
+                    fileTemplates={fileTemplates}
+                    variables={vars}
+                    environments={environments}
+                    currentEnvironmentId={currentEnvironmentId}
+                    onAddFileTemplate={addFileTemplate}
+                    onUpdateFileTemplate={updateFileTemplate}
+                    onDeleteFileTemplate={deleteFileTemplate}
+                />
             </section>
         </>
     )
