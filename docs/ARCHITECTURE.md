@@ -215,6 +215,7 @@ When adding UI:
 ## Current Technical Notes
 
 - CKEditor content is stored as HTML strings.
+- CKEditor is self-hosted under the GPL configuration. Keep the `ckeditor5` and `@ckeditor/ckeditor5-react` dependencies exactly pinned to a compatible standard release; CKEditor maintenance-LTS releases require an LTS license and will reject the `GPL` license key.
 - Console logging is present in several components and can be reduced during cleanup.
 - Some default Vite CSS classes remain in `App.css`.
 - `TextPair` is retained but unused by the current `App` render path.
