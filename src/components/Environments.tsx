@@ -8,6 +8,40 @@ interface EnvironmentsProps {
     onCurrentEnvironmentChange: (id: string) => void
 }
 
+interface ClearableInputProps {
+    value: string
+    onChange: (value: string) => void
+    clearLabel: string
+    placeholder?: string
+    inputClassName?: string
+}
+
+const ClearableInput = ({
+    value,
+    onChange,
+    clearLabel,
+    placeholder,
+    inputClassName,
+}: ClearableInputProps) => (
+    <div className="environment-clearable-input">
+        <input
+            className={inputClassName}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={placeholder}
+        />
+        <button
+            type="button"
+            className="environment-clear-button"
+            onClick={() => onChange('')}
+            aria-label={clearLabel}
+            title={clearLabel}
+        >
+            Clear
+        </button>
+    </div>
+)
+
 export const Environments = (props: EnvironmentsProps) => {
     // Helper to ensure all environments have the same keys.
     // We'll use the first environment as the "source of truth" for keys if it exists,
@@ -84,6 +118,28 @@ export const Environments = (props: EnvironmentsProps) => {
         props.onEnvironmentsChange(newEnvs)
     }
 
+    const clearValuesForKey = (index: number) => {
+        const keyLabel = keys[index] || `environment key ${index + 1}`
+        if (
+            window.confirm(
+                `Are you sure you want to clear all values for ${keyLabel} across every environment?`,
+            )
+        ) {
+            const newEnvs = props.environments.map((environment) => {
+                const newValues = [...environment.values]
+                const value = newValues[index]
+
+                if (!value) {
+                    return environment
+                }
+
+                newValues[index] = { ...value, value: '' }
+                return { ...environment, values: newValues }
+            })
+            props.onEnvironmentsChange(newEnvs)
+        }
+    }
+
     const deleteKey = (index: number) => {
         if (
             window.confirm(
@@ -109,7 +165,7 @@ export const Environments = (props: EnvironmentsProps) => {
         >
             <h1>Environments</h1>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div className="environment-table-scroll">
                 <table
                     border={1}
                     style={{
@@ -120,40 +176,39 @@ export const Environments = (props: EnvironmentsProps) => {
                 >
                     <thead>
                         <tr>
-                            <th style={{ width: '200px', padding: '10px' }}>
+                            <th
+                                className="environment-key-header"
+                                style={{ padding: '10px' }}
+                            >
                                 Key
                             </th>
-                            {props.environments.map((env) => (
+                            {props.environments.map((env, envIndex) => (
                                 <th
                                     key={env.id}
+                                    className="environment-column-header"
                                     style={{
-                                        minWidth: '150px',
                                         padding: '10px',
                                     }}
                                 >
                                     <div
+                                        className="environment-header-controls"
                                         style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
                                             justifyContent: 'center',
-                                            gap: '5px',
                                         }}
                                     >
-                                        <input
+                                        <ClearableInput
                                             value={env.name}
-                                            onChange={(e) =>
+                                            onChange={(name) =>
                                                 updateEnvironmentName(
                                                     env.id,
-                                                    e.target.value,
+                                                    name,
                                                 )
                                             }
-                                            style={{
-                                                fontWeight: 'bold',
-                                                textAlign: 'center',
-                                                width: '80%',
-                                            }}
+                                            clearLabel={`Clear name for environment ${envIndex + 1}`}
+                                            inputClassName="environment-name-input"
                                         />
                                         <button
+                                            type="button"
                                             onClick={() =>
                                                 deleteEnvironment(env.id)
                                             }
@@ -176,8 +231,11 @@ export const Environments = (props: EnvironmentsProps) => {
                                     </div>
                                 </th>
                             ))}
-                            <th style={{ width: '50px' }}>
-                                <button onClick={addEnvironment}>+ Env</button>
+                            <th className="environment-actions-header">
+                                <span>Actions</span>
+                                <button type="button" onClick={addEnvironment}>
+                                    + Env
+                                </button>
                             </th>
                         </tr>
                     </thead>
@@ -185,18 +243,17 @@ export const Environments = (props: EnvironmentsProps) => {
                         {keys.map((key, index) => (
                             <tr key={index}>
                                 <td style={{ padding: '5px' }}>
-                                    <div
-                                        style={{ display: 'flex', gap: '5px' }}
-                                    >
-                                        <input
+                                    <div className="environment-key-controls">
+                                        <ClearableInput
                                             value={key}
-                                            onChange={(e) =>
-                                                updateKey(index, e.target.value)
+                                            onChange={(newKey) =>
+                                                updateKey(index, newKey)
                                             }
                                             placeholder="Variable Name"
-                                            style={{ width: '100%' }}
+                                            clearLabel={`Clear environment key ${index + 1}`}
                                         />
                                         <button
+                                            type="button"
                                             onClick={() => deleteKey(index)}
                                         >
                                             <img
@@ -210,24 +267,39 @@ export const Environments = (props: EnvironmentsProps) => {
                                         </button>
                                     </div>
                                 </td>
-                                {props.environments.map((env) => (
+                                {props.environments.map((env, envIndex) => (
                                     <td key={env.id} style={{ padding: '5px' }}>
-                                        <input
+                                        <ClearableInput
                                             value={
                                                 env.values[index]?.value || ''
                                             }
-                                            onChange={(e) =>
+                                            onChange={(value) =>
                                                 updateValue(
                                                     env.id,
                                                     index,
-                                                    e.target.value,
+                                                    value,
                                                 )
                                             }
-                                            style={{ width: '100%' }}
+                                            clearLabel={`Clear value for ${key || `environment key ${index + 1}`} in ${env.name || `environment ${envIndex + 1}`}`}
                                         />
                                     </td>
                                 ))}
-                                <td></td>
+                                <td className="environment-row-actions">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            clearValuesForKey(index)
+                                        }
+                                        disabled={props.environments.every(
+                                            (environment) =>
+                                                !environment.values[index]
+                                                    ?.value,
+                                        )}
+                                        aria-label={`Clear values for ${key || `environment key ${index + 1}`} across all environments`}
+                                    >
+                                        Clear values
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
