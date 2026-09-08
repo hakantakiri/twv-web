@@ -220,3 +220,65 @@
 .file-template-upload-message.success {
     color: #4caf50;
 }
+
+.environment-key-header {
+    min-width: 280px;
+}
+
+.environment-column-header {
+    min-width: 260px;
+}
+
+.environment-table-scroll {
+    box-sizing: border-box;
+    margin: 0 auto;
+    max-width: calc(100vw - 4rem);
+    overflow-x: auto;
+    width: 100%;
+}
+
+.environment-header-controls,
+.environment-key-controls,
+.environment-clearable-input {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+
+.environment-clearable-input {
+    flex: 1;
+}
+
+.environment-clearable-input input {
+    box-sizing: border-box;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+}
+
+.environment-name-input {
+    font-weight: bold;
+    text-align: center;
+}
+
+.environment-clear-button {
+    flex: 0 0 auto;
+    padding: 0.35em 0.6em;
+    white-space: nowrap;
+}
+
+.environment-actions-header {
+    min-width: 110px;
+    padding: 5px;
+}
+
+.environment-actions-header span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.environment-row-actions {
+    padding: 5px;
+    white-space: nowrap;
+}
